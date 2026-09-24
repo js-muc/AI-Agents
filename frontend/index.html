@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Research Agent Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- NAVIGATION -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <div class="brand-icon">🧠</div>
+                    <div>
+                        <span class="brand-name">AI Research <span class="brand-highlight">Agent</span></span>
+                        <span class="brand-version">v3.0 Pro</span>
+                    </div>
+                </div>
+                <div class="nav-status">
+                    <span class="status-dot" id="navStatusDot"></span>
+                    <span id="navStatusText">System Ready</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-container">
+            <!-- LEFT COLUMN -->
+            <div class="left-column">
+                <!-- INPUT CARD -->
+                <div class="card input-card">
+                    <div class="card-header">
+                        <h2>📋 Research Request</h2>
+                        <span class="card-badge" id="statusBadge">● Idle</span>
+                    </div>
+                    
+                    <!-- TRUST BADGE -->
+                    <div class="trust-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                            <polyline points="22 4 12 14.01 9 11.01"/>
+                        </svg>
+                        Trusted by 500+ professionals
+                    </div>
+                    
+                    <form id="agentForm">
+                        <div class="form-group">
+                            <label>
+                                <span class="label-icon">🔍</span>
+                                Research Topic
+                            </label>
+                            <input type="text" id="topic" placeholder="e.g., AI Agents in Kenya 2026" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>
+                                <span class="label-icon">📧</span>
+                                Recipient Email
+                            </label>
+                            <input type="email" id="recipient" placeholder="client@company.com" required>
+                        </div>
+                        
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <span class="btn-text">🚀 Generate Research Report</span>
+                            <span class="btn-spinner" id="btnSpinner"></span>
+                        </button>
+                    </form>
+
+                    <!-- AGENT STATUS - ONLY 3 AGENTS -->
+                    <div class="agent-status-section">
+                        <div class="agent-status-header">
+                            <h3>🧠 Agent Status</h3>
+                            <span id="overallStatus">● Idle</span>
+                        </div>
+                        <div class="agent-grid" id="agentGrid">
+                            <div class="agent-card" data-agent="supervisor">
+                                <span class="agent-icon">📋</span>
+                                <span class="agent-name">Supervisor</span>
+                                <span class="agent-status-badge" id="status-supervisor">⏸️ Idle</span>
+                            </div>
+                            <div class="agent-card" data-agent="researcher">
+                                <span class="agent-icon">🔍</span>
+                                <span class="agent-name">Researcher</span>
+                                <span class="agent-status-badge" id="status-researcher">⏸️ Idle</span>
+                            </div>
+                            <div class="agent-card" data-agent="analyst">
+                                <span class="agent-icon">📊</span>
+                                <span class="agent-name">Analyst</span>
+                                <span class="agent-status-badge" id="status-analyst">⏸️ Idle</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- REPORT PANEL -->
+                    <div class="report-panel" id="reportPanel">
+                        <div class="report-header">
+                            <h3>📄 Report Generated</h3>
+                            <button class="btn-download" id="downloadBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Download
+                            </button>
+                        </div>
+                        <div class="report-body" id="reportContent"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="right-column">
+                <!-- LOGS CARD -->
+                <div class="card logs-card">
+                    <div class="card-header">
+                        <h2>📋 Activity Log</h2>
+                        <span class="log-count" id="logCount">0</span>
+                    </div>
+                    <div class="log-container" id="logContainer">
+                        <div class="log-entry system">
+                            <span class="log-time">[System]</span>
+                            <span class="log-message">🧠 AI Research Agent initialized</span>
+                        </div>
+                        <div class="log-entry system">
+                            <span class="log-time">[System]</span>
+                            <span class="log-message">⚙️ 3 specialized agents loaded</span>
+                        </div>
+                        <div class="log-entry system">
+                            <span class="log-time">[System]</span>
+                            <span class="log-message">✅ Ready for your request</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p>Built with ❤️ by AI Research Agent Pro — © 2026</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

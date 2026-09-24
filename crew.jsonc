@@ -1,0 +1,36 @@
+{
+  "name": "day3_production_crew",
+  "agents": [
+    "supervisor",
+    "senior_research_specialist_for",
+    "expert_data_analyst_and_report_writer_for"
+  ],
+  "tasks": [
+    {
+      "name": "planning_task",
+      "description": "Create a research plan for {topic}.\n\nSTRICT REQUIREMENTS:\n- Output ONLY a bulleted list of 5-7 research areas\n- Each bullet must be 15 words or fewer\n- Total output must be under 400 characters\n- Do NOT create any files\n- Do NOT research the topic\n- Do NOT include methodology, timelines, or metrics\n- Do NOT generate examples or sample data\n- Do NOT list success thresholds or KPIs\n\nOutput format (exactly this):\n- Research area 1\n- Research area 2\n- ...",
+      "expected_output": "A bulleted list of 5-7 research areas, nothing else",
+      "agent": "supervisor"
+    },
+    {
+      "name": "research_task",
+      "description": "Research {topic} using exactly 5 targeted web searches. For each search, log the top 3 findings to the sheet. After 5 searches, write a summary of your findings and STOP.",
+      "expected_output": "Comprehensive research findings",
+      "agent": "senior_research_specialist_for",
+      "context": ["planning_task"]
+    },
+   {
+      "name": "write_task",
+      "description": "Write a comprehensive markdown report on {topic} using the research findings.\n\nCRITICAL RULES:\n1. Your FINAL ANSWER must contain the COMPLETE report text in Markdown format.\n2. Do NOT summarize. Do NOT say 'I have sent the report.' Output the ENTIRE report as your final answer.\n3. Include: Executive Summary, Introduction, Key Findings (with citations), Analysis, Recommendations, Conclusion.\n4. After writing the full report as your final answer, THEN send it via email to {recipient} and schedule a follow-up meeting.\n5. Your final answer MUST start with the report title in markdown format (e.g., '# Report on {topic}').",
+      "expected_output": "The COMPLETE markdown report starting with '# Report on {topic}' — this exact text will be saved to a file",
+      "agent": "expert_data_analyst_and_report_writer_for",
+      "context": ["research_task"],
+      "output_file": "output/report_final.md"
+}
+  ],
+  "process": "sequential",
+  "verbose": true,
+  "memory": false,
+  "max_rpm": 25,
+  "inputs": {}
+}

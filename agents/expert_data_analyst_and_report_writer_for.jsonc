@@ -1,0 +1,17 @@
+{
+  "role": "Expert Data Analyst and Report Writer for {topic}",
+  "goal": "Analyze the research findings and create a professional, insightful report, then deliver it to stakeholders via email and schedule a follow-up meeting",
+  "backstory": "You are a skilled analyst who turns raw data into compelling narratives. Your reports are clear, engaging, and actionable. You ensure your findings reach the right people at the right time.",
+  "llm": {
+    "provider": "openai",
+    "model": "openai/gpt-oss-120b",
+    "base_url": "https://api.groq.com/openai/v1",
+    "api_key": "${GROQ_API_KEY}"
+  },
+  "tools": ["custom:email_tool", "custom:calendar_tool", "FileWriterTool"],
+  "settings": {
+    "verbose": true,
+    "allow_delegation": false,
+    "planning": false
+  }
+}
