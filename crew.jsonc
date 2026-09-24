@@ -21,7 +21,7 @@
     },
    {
       "name": "write_task",
-      "description": "Write a comprehensive markdown report on {topic} using the research findings.\n\nCRITICAL RULES:\n1. Your FINAL ANSWER must contain the COMPLETE report text in Markdown format.\n2. Do NOT summarize. Do NOT say 'I have sent the report.' Output the ENTIRE report as your final answer.\n3. Include: Executive Summary, Introduction, Key Findings (with citations), Analysis, Recommendations, Conclusion.\n4. After writing the full report as your final answer, THEN send it via email to {recipient} and schedule a follow-up meeting.\n5. Your final answer MUST start with the report title in markdown format (e.g., '# Report on {topic}').",
+      "description": "Write a focused markdown report on {topic} using ONLY the research summary provided. Report length: 800-1200 words maximum. Structure: Executive Summary, Key Findings, Analysis, Conclusion. Your FINAL ANSWER must be the COMPLETE report starting with '# Report on {topic}'. Then email to {recipient}. Keep it concise — do NOT expand beyond the research provided.",
       "expected_output": "The COMPLETE markdown report starting with '# Report on {topic}' — this exact text will be saved to a file",
       "agent": "expert_data_analyst_and_report_writer_for",
       "context": ["research_task"],
