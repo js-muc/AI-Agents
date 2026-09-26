@@ -21,12 +21,12 @@
     },
    {
       "name": "write_task",
-      "description": "Write a focused markdown report on {topic} using ONLY the research summary provided. Report length: 800-1200 words maximum. Structure: Executive Summary, Key Findings, Analysis, Conclusion. Your FINAL ANSWER must be the COMPLETE report starting with '# Report on {topic}'. Then email to {recipient}. Keep it concise — do NOT expand beyond the research provided.",
-      "expected_output": "The COMPLETE markdown report starting with '# Report on {topic}' — this exact text will be saved to a file",
+      "description": "Read the file 'research_data.csv' in the current working directory using your FileReadTool. Analyze the contents. Write a focused markdown report on {topic}. Report length: 800-1200 words maximum. Structure: Executive Summary, Key Findings, Analysis, Conclusion. Your FINAL ANSWER must be the COMPLETE report starting with '# Report on {topic}'. Then email to {recipient}.",
+      "expected_output": "The COMPLETE markdown report",
       "agent": "expert_data_analyst_and_report_writer_for",
-      "context": ["research_task"],
+      "context": [],
       "output_file": "output/report_final.md"
-}
+    }
   ],
   "process": "sequential",
   "verbose": true,

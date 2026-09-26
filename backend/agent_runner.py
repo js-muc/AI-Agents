@@ -32,7 +32,7 @@ tempfile.tempdir = TEMP_DIR
 # NOTE: MAX_TASK_DURATION is now a SOFT WARNING only — never fakes completion.
 #       Only MAX_TOTAL_DURATION truly stops the process.
 MAX_TASK_DURATION = 900      # 15 min soft warning per task
-MAX_TOTAL_DURATION = 2700    # 45 min hard stop
+MAX_TOTAL_DURATION = 600     # 10 min hard stop (Groq is fast)
 MAX_SAME_TASK_REPEATS = 500  # Anti-loop only triggers on truly pathological loops
 
 print(f"📂 Using temp directory: {TEMP_DIR}")

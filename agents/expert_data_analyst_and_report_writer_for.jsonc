@@ -10,6 +10,7 @@
   },
   "tools": ["custom:email_tool", "custom:calendar_tool", "FileWriterTool"],
   "settings": {
+    "max_iter": 3,
     "verbose": true,
     "allow_delegation": false,
     "planning": false

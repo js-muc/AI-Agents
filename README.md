@@ -1,6 +1,6 @@
 # 🤖 AI Research Agent
 
-> A production-grade multi-agent AI system that researches any topic and delivers a professional report to a specified recipient — automatically.
+> A multi-agent AI system that autonomously researches any topic and produces a structured report — with live status streaming to a web UI.
 
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
 [![CrewAI](https://img.shields.io/badge/CrewAI-1.15-orange)](https://crewai.com/)
@@ -11,30 +11,56 @@
 
 ## 🎯 What It Does
 
-Submit a research topic and a recipient email. Three autonomous AI agents work in sequence:
+Submit a research topic and a recipient email address. Three specialized AI agents collaborate in sequence:
 
 | Agent | Role | Responsibility |
 |-------|------|----------------|
 | 👔 **Supervisor** | Planning | Breaks the topic into structured research areas |
-| 🔍 **Researcher** | Discovery | Executes targeted web searches and extracts findings |
-| 📊 **Analyst** | Writing | Synthesizes findings into a professional Markdown report, emails it to the recipient, and schedules a follow-up |
+| 🔍 **Researcher** | Discovery | Executes web searches and extracts key findings |
+| 📊 **Analyst** | Writing | Synthesizes findings into a professional Markdown report and delivers it via email |
 
-The user watches this happen live through a web interface with per-agent status indicators and a streaming activity log.
+The user watches the run happen in real time through a browser-based interface with per-agent status badges and a live activity log streamed over Server-Sent Events.
 
 ---
 
-## ✨ Features
+## 📊 Project Status
 
-- **Multi-agent orchestration** — 3 specialized CrewAI agents with sequential task dependencies
-- **Real web search** — Serper API for live, sourced information
-- **Real-time streaming** — Server-Sent Events (SSE) push agent status and logs to the UI
-- **Live agent status** — the UI reflects each agent's real state (idle, working, complete, error)
-- **Automatic email delivery** — report is sent via Gmail SMTP to the specified recipient
-- **Calendar scheduling** — a follow-up meeting is created via Google Calendar
-- **Downloadable report** — final output is available as a Markdown file
-- **Graceful failure handling** — errors are logged and surfaced, not hidden
-- **Process isolation** — subprocess groups are cleaned up on exit, no orphan processes
-- **Environment-variable config** — no API keys committed to the repository
+**Core pipeline: complete and operational.**
+
+**Full end-to-end reliability: in active development.**
+
+The three-agent pipeline runs correctly, the UI streams live status, and the report is produced when the run completes within the LLM provider's rate limits. On the free tier of the current LLM provider (Groq), a thorough research pass can issue more parallel tool calls than the rate limit permits, in which case the pipeline is terminated mid-run and no report is delivered.
+
+**Two paths to production-ready reliability:**
+
+1. **Use a paid LLM tier** — removes the rate limit entirely. Cost is approximately $0.10–0.50 per full research run.
+2. **Apply the bounded-research rewrite** — pre-fetch a fixed number of search results in the backend and pass them to the agents as static context. This eliminates unbounded tool calls by construction.
+
+Both options are documented in [`docs/ENGINEERING_LOG.md`](docs/ENGINEERING_LOG.md).
+
+---
+
+## ✨ What Works Today
+
+**Verified through testing:**
+
+- **Multi-agent orchestration** — 3 CrewAI agents with sequential task dependencies (`crew.jsonc`)
+- **Real-time UI updates** — Server-Sent Events push agent status and log lines to the browser
+- **Per-agent status tracking** — UI shows each agent's real state (idle / working / complete / error)
+- **Web search integration** — Serper API for live results
+- **Environment variable substitution** — `${VAR}` placeholders in agent JSONC files are expanded at runtime, keeping the source configs secret-free
+- **Process isolation** — `start_new_session=True` plus `os.killpg` guarantees no orphan subprocesses
+- **Task state machine guards** — prevents illegal transitions (COMPLETE → IN_PROGRESS)
+- **Hard timeouts** — 10-minute wall clock limit; auto-terminates and reports cleanly
+- **Report persistence** — successful runs write to `output/report_final.md`
+- **Email delivery** — via Gmail SMTP (App Password)
+- **Calendar scheduling** — follow-up meeting is created via Google Calendar
+
+**In development:**
+
+- Automatic recovery from LLM rate limits (currently terminates cleanly without retry)
+- Bounded tool-call semantics at the framework layer
+- Multi-tenant session isolation
 
 ---
 
@@ -45,6 +71,7 @@ The user watches this happen live through a web interface with per-agent status 
 └────────────────┘ ◄──── Server-Sent Events (SSE) ─── └────────┬───────┘
 │
 spawns agent_runner
+in a separate thread
 │
 ▼
 ┌────────────────┐
@@ -60,19 +87,19 @@ spawns agent_runner
 └────────────┘ └────────────┘ └────────────┘
 │ Serper │ Gmail SMTP
 │ Web search │ Google Calendar
-│ Sheets tool │ Output file
+│ CSV persistence │ Markdown report
 
 text
 
 ### Request lifecycle
 
-1. User submits a topic + recipient email
-2. Backend starts `agent_runner.py` in a background thread
-3. `agent_runner.py` creates an isolated temp directory, copies configuration files, and expands environment variables into the agent configs
-4. A `crewai run` subprocess is spawned inside a new session (so the entire process group can be terminated cleanly)
-5. As CrewAI emits stdout, `agent_runner.py` parses task transitions and pushes status updates to a queue
-6. The Flask SSE endpoint streams those updates to the browser
-7. When CrewAI finishes, the report is copied to `output/report_final.md` and the completion event is sent to the UI
+1. The user submits a topic and recipient email
+2. The Flask backend spawns `agent_runner.py` in a background thread
+3. `agent_runner.py` creates an isolated working directory under `temp/`, copies configuration files, and expands `${VAR}` placeholders into the agent configs
+4. A `crewai run` subprocess is spawned in a new process session
+5. As CrewAI emits stdout, `agent_runner.py` parses task transition markers and pushes structured log + status events to a queue
+6. The Flask SSE endpoint streams those events to the browser
+7. On successful completion, the report file is copied to `output/report_final.md` and a `complete` event is delivered to the frontend
 
 ---
 
@@ -88,8 +115,10 @@ text
 | Env loading | python-dotenv | 1.2.3 |
 | HTTP client | requests | 2.34.2 |
 | Frontend | Vanilla HTML / CSS / JavaScript | — |
-| LLM (routed) | Groq (`llama-3.3-70b-versatile` and others) | — |
-| Search | Serper API | — |
+| LLM | Groq (OpenAI-compatible API) | — |
+| Web search | Serper API | — |
+| Email | Gmail SMTP (App Password) | — |
+| Calendar | Google Calendar | — |
 
 ---
 
@@ -97,9 +126,9 @@ text
 
 ### Prerequisites
 
-- Python 3.10+
-- A [Groq API key](https://console.groq.com/keys) (free tier)
-- A [Serper API key](https://serper.dev) (free tier)
+- Python 3.10 or newer
+- A [Groq API key](https://console.groq.com/keys) (free tier works for individual runs)
+- A [Serper API key](https://serper.dev) (free tier provides 2,500 searches)
 - A Gmail account with an [App Password](https://myaccount.google.com/apppasswords)
 
 ### Installation
@@ -108,103 +137,119 @@ text
 git clone https://github.com/js-muc/AI-Agents.git
 cd AI-Agents
 
-# Create the backend virtual environment
+# Backend virtual environment (Flask + server)
 python3 -m venv .venv-backend
 source .venv-backend/bin/activate
 pip install -r backend/requirements.txt
 
-# Create the agents virtual environment (isolated from the backend)
+# Agent virtual environment (CrewAI)
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 Configuration
 bash
 cp .env.example .env
-# Edit .env and fill in:
-#   GROQ_API_KEY       — from https://console.groq.com/keys
-#   SERPER_API_KEY     — from https://serper.dev/dashboard
-#   EMAIL_ADDRESS      — your Gmail address
-#   EMAIL_PASSWORD     — a Gmail App Password (not your account password)
-Run
-bash
-# Activate the backend venv
-source .venv-backend/bin/activate
+Then edit .env and fill in:
 
-# Start the server
+Variable	Where to get it
+GROQ_API_KEY	https://console.groq.com/keys
+SERPER_API_KEY	https://serper.dev/dashboard
+EMAIL_ADDRESS	Your Gmail address
+EMAIL_PASSWORD	A Gmail App Password (16 characters, not your account password)
+Running
+bash
+source .venv-backend/bin/activate
 cd backend
 python app.py
 Open http://127.0.0.1:5000 in your browser.
 
-Submit a topic (e.g., "Benefits of drinking water") and a recipient email. The three agents will run in sequence and deliver a report to the recipient.
+Enter a research topic and a recipient email. The three agents will run in sequence. When the run completes successfully, the report is written to output/report_final.md and shown in the UI.
 
 📁 Project Structure
 text
 .
 ├── backend/                       # Flask server + agent orchestration
-│   ├── __init__.py
-│   ├── agent_runner.py            # Spawns CrewAI, parses output, drives UI updates
+│   ├── agent_runner.py            # Spawns CrewAI, parses output, streams status
 │   ├── app.py                     # Flask routes + SSE endpoint
 │   ├── config.py                  # Paths, host, port
 │   ├── log_manager.py             # In-memory per-session log queues
 │   ├── pdf_generator.py           # Optional PDF export of the report
 │   └── requirements.txt
+│
 ├── frontend/                      # Vanilla HTML/CSS/JS interface
 │   ├── index.html
 │   ├── script.js
 │   └── style.css
+│
 ├── agents/                        # CrewAI agent definitions (JSONC)
 │   ├── supervisor.jsonc
 │   ├── senior_research_specialist_for.jsonc
 │   └── expert_data_analyst_and_report_writer_for.jsonc
+│
 ├── tools/                         # Custom tools available to the agents
 │   ├── calendar_tool.py
 │   ├── email_tool.py
 │   ├── human_approval_tool.py
-│   └── sheets_tool.py
-├── crew.jsonc                     # Crew configuration (agents, tasks, process)
+│   ├── sheets_tool.py
+│   └── bounded_serper_tool.py     # Experimental bounded-search wrapper
+│
+├── docs/                          # Deep documentation
+│   ├── ARCHITECTURE.md            # Component-by-component walkthrough
+│   └── ENGINEERING_LOG.md         # Real problems and how they were solved
+│
+├── crew.jsonc                     # Crew configuration
 ├── pyproject.toml                 # Python project metadata
-├── start-backend.sh               # One-shot backend launcher
+├── start-backend.sh               # Convenience launcher
 ├── .env.example                   # Template for required secrets
 └── .gitignore
 🔐 Security
 No API keys are committed. All secrets are read from environment variables loaded via python-dotenv.
 
-Agent config files use ${VAR_NAME} placeholders. These are expanded at runtime in an isolated temp directory by agent_runner.py — the originals stay clean.
+Agent configs use ${VAR_NAME} placeholders. These are expanded at runtime in an isolated temporary directory by agent_runner.py; the source files stay clean and secret-free.
 
-.env is gitignored.
+.env is gitignored. Committed by exception only as .env.example, which contains placeholders only.
 
-Rotated credentials are never stored in Git history.
+Rotation procedure. Regenerate the key at the provider's dashboard, update .env locally, restart the backend.
 
-To rotate a key:
+🎓 Engineering Highlights
+Five non-obvious problems solved while building this system. Each is documented in more depth in docs/ENGINEERING_LOG.md.
 
-Regenerate the key at the provider's dashboard
+1. Process group isolation.
+CrewAI's uv run spawns child processes that survive when the parent exits normally. agent_runner.py uses subprocess.Popen(..., start_new_session=True) and os.killpg(os.getpgid(pid), SIGKILL) to guarantee the entire process tree terminates — even on error paths.
 
-Update .env locally
+2. Task state machine integrity.
+CrewAI's terminal output redraws the current task marker dozens of times per minute. Without guards, a late redraw could be misread as a task transition and restart a completed task. Guarded transitions (and not task_completed['research']) prevent illegal state changes.
 
-Restart the backend
+3. Environment variable expansion for JSONC.
+CrewAI does not expand ${VAR} placeholders in agent JSONC files. agent_runner.py performs the expansion into a temporary copy of the configs, keeping the source files clean and secret-free.
 
-📈 Engineering Highlights
-A few non-obvious problems that were solved while building this:
+4. Virtual environment separation.
+CrewAI's uv sync reconciles the environment to match pyproject.toml and removes packages it doesn't recognize. This would remove Flask on every run. The solution: two virtual environments — .venv for CrewAI, .venv-backend for the Flask server.
 
-1. Process group isolation. CrewAI's uv run spawns child processes that are not automatically killed when the parent exits. agent_runner.py uses subprocess.Popen(..., start_new_session=True) and os.killpg(os.getpgid(pid), SIGKILL) to guarantee the entire tree is terminated.
-
-2. Task state machine integrity. CrewAI's TUI redraws "Task X/3" markers frequently. Without guards, those redraws can be misread as task transitions and cause a completed task to restart. Guard checks (not task_completed['research']) prevent illegal state transitions.
-
-3. Environment variable expansion for JSONC. CrewAI does not expand ${VAR} placeholders in agent JSONC files. agent_runner.py performs the expansion manually into a temporary copy, keeping the source configs secret-free.
-
-4. Venv separation. The backend (Flask) and the agent runtime (CrewAI) use separate virtual environments. This prevents uv sync (invoked by CrewAI) from uninstalling Flask when it reconciles pyproject.toml.
-
-5. Environment loading across process boundaries. .env is loaded once in agent_runner.py via load_dotenv(). The subprocess inherits the resulting os.environ through subprocess.Popen(..., env=env), so the agent runtime sees the same secrets as the parent.
+5. Multi-agent context accumulation.
+Each downstream agent receives the accumulated output of upstream agents through CrewAI's context field. For iterative research tasks, this can exceed the LLM's context window. This is the primary open issue and is documented in the engineering log along with the proposed bounded-research rewrite.
 
 🗺️ Roadmap
+Completed:
+
 ☑ Three-agent sequential workflow
-☑ Real-time UI status via SSE
-☑ Report generation, email delivery, calendar scheduling
+☑ Real-time UI status via Server-Sent Events
+☑ Automatic email delivery
+☑ Google Calendar scheduling
 ☑ Process isolation and cleanup
 ☑ Environment-variable configuration for agent files
+☑ Professional documentation set
+In progress:
+
+□ Bounded-search semantics at the framework layer
+□ Automatic retry with exponential backoff on rate-limit responses
 □ Public deployment (Railway)
-□ Multi-tenant session management
+Future:
+
+□ Multi-tenant session isolation
 □ Structured PDF export
+□ Custom agent templates
+□ Report diffing between runs
 📄 License
 MIT — see LICENSE.
 
